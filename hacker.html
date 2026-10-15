@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMTOM.SYS // SECURE GATEWAY</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        body {
+            background-color: #030001;
+            color: #ff0033;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Nền mưa chữ mượt mà, không nặng máy */
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, rgba(255, 0, 51, 0.12) 0%, rgba(3, 0, 1, 0.96) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Khung kết nối được trang trí cực ngầu và chi tiết */
+        .mainframe-card {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 350px;
+            background: rgba(10, 1, 4, 0.97);
+            border: 1px solid #ff0033;
+            border-radius: 12px;
+            padding: 24px 20px;
+            box-shadow: 0 0 35px rgba(255, 0, 51, 0.35), inset 0 0 20px rgba(255, 0, 51, 0.15);
+            text-align: center;
+        }
+
+        /* Các góc viền công nghệ trang trí hầm hố */
+        .mainframe-card::before, .mainframe-card::after {
+            content: "";
+            position: absolute;
+            width: 10px; height: 10px;
+            border-color: #ff0033;
+            border-style: solid;
+        }
+        .mainframe-card::before { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+        .mainframe-card::after { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
+
+        /* Radar quét trung tâm */
+        .radar-box {
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 14px auto;
+            border: 2px solid rgba(255, 0, 51, 0.8);
+            border-radius: 50%;
+            position: relative;
+            background: rgba(0, 0, 0, 0.85);
+            overflow: hidden;
+            box-shadow: 0 0 12px rgba(255, 0, 51, 0.5);
+        }
+
+        .radar-sweep {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: conic-gradient(from 0deg at 50% 50%, rgba(255, 0, 51, 0.9) 0deg, transparent 60deg, transparent 360deg);
+            border-radius: 50%;
+            animation: sweepRotate 1.5s linear infinite;
+        }
+
+        @keyframes sweepRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .radar-target {
+            position: absolute;
+            top: 13px; right: 12px;
+            width: 5px; height: 5px;
+            background: #ffff00;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ffff00;
+        }
+
+        .system-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+            text-shadow: 0 0 8px rgba(255, 0, 51, 0.8);
+        }
+
+        .system-subtitle {
+            font-size: 9px;
+            color: #ff3366;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+        }
+
+        /* Hộp dòng lệnh phong cách terminal chuyên nghiệp */
+        .terminal-box {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px dashed rgba(255, 0, 51, 0.4);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .terminal-header {
+            font-size: 9px;
+            color: #884455;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .terminal-log {
+            font-size: 11px;
+            color: #ff99bb;
+            min-height: 20px;
+        }
+
+        /* Thanh tiến trình kiểu quân sự */
+        .progress-wrapper {
+            width: 100%;
+            height: 5px;
+            background: #050001;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 0, 51, 0.5);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff9900, #ff0033);
+            box-shadow: 0 0 8px #ff0033;
+        }
+
+        /* Nút bấm truy cập trực tiếp Lnk.Bio */
+        .bypass-btn {
+            display: block;
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, #ff0033, #660015);
+            color: #ffffff;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-decoration: none;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+            text-transform: uppercase;
+            border: 1px solid #ff4466;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .bypass-btn:hover {
+            background: #ffffff;
+            color: #030001;
+        }
+
+        /* Nút link xanh TikTok cực ngầu */
+        .tiktok-link {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .tiktok-link:hover {
+            background: #00ffcc;
+            color: #030001;
+            box-shadow: 0 0 25px #00ffcc;
+        }
+
+        .countdown-text {
+            margin-top: 10px;
+            font-size: 9px;
+            color: #996677;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="mainframe-card">
+        <div class="radar-box">
+            <div class="radar-sweep"></div>
+            <div class="radar-target"></div>
+        </div>
+
+        <div class="system-title">TOMMOD.SYS // SECURE</div>
+        <div class="system-subtitle">Đang định tuyến đường truyền...</div>
+
+        <div class="terminal-box">
+            <div class="terminal-header">// SESSION LOGS</div>
+            <div class="terminal-log" id="logBox">> Đang khởi tạo kết nối...</div>
+        </div>
+
+        <div class="progress-wrapper">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <!-- Nút chuyển hướng sang Lnk.Bio chính -->
+        <a href="https://linkbio.co/tomjuu09" class="bypass-btn">TRUY CẬP TRỰC TIẾP</a>
+
+        <!-- Nút link xanh TikTok bổ sung -->
+        <a href="https://tiktok.com/@tluocc_010" target="_blank" class="tiktok-link">
+            ⚡ FOLLOW TIKTOK: @tluocc_010 ⚡
+        </a>
+        
+        <div class="countdown-text" id="countdown">Tự động chuyển hướng sau 3.5s</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const chars = "系統入侵中数据破解黑客帝国極速繞過安全協議 010101 TOMMOD EMTOM";
+        const fontSize = 16;
+        const columns = Math.floor(canvas.width / fontSize);
+        const drops = [];
+        for (let i = 0; i < columns; i++) drops[i] = 1;
+
+        function draw() {
+            ctx.fillStyle = 'rgba(3, 0, 1, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#ff0033';
+            ctx.font = 'bold ' + fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.93) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 35);
+
+        const logs = [
+            "> Đang khởi tạo kết nối...",
+            "> Vượt tường lửa bảo mật...",
+            "> Đã kết nối đích thành công."
+        ];
+
+        let logIndex = 0;
+        const logBox = document.getElementById("logBox");
+
+        setInterval(() => {
+            logIndex = (logIndex + 1) % logs.length;
+            logBox.innerText = logs[logIndex];
+        }, 1100);
+
+        const totalTime = 3.5; 
+        let width = 0;
+        const bar = document.getElementById("progressBar");
+        
+        let timerInterval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(timerInterval);
+            } else {
+                width += (100 / (totalTime * 20));
+                bar.style.width = width + '%';
+            }
+        }, 50);
+
+        let timeLeft = totalTime;
+        const countdownEl = document.getElementById("countdown");
+        
+        let countInterval = setInterval(() => {
+            timeLeft -= 0.1;
+            if (timeLeft <= 0) {
+                clearInterval(countInterval);
+                countdownEl.innerText = `Đang chuyển hướng...`;
+            } else {
+                countdownEl.innerText = `Tự động chuyển hướng sau ${timeLeft.toFixed(1)}s`;
+            }
+        }, 100);
+
+        setTimeout(() => {
+            window.location.href = "https://linkbio.co/tomjuu09";
+        }, totalTime * 1000);
+    </script>
+
+</body>
+</html>
